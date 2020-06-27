@@ -37,13 +37,15 @@ class Network():
             if game_type == "CREATE":
                 self.client.send(pickle.dumps(self.options))
             elif game_type == "ENTER":
-                self.client.send(str.encode(self.options.game_id))
+                self.client.send(str.encode(str(self.options["game_id"])))
             else:
                 return "ERROR"
         else:
             self.connect()
 
-        return self.client.recv(1024).decode(encoding="UTF-8")
+        rc = self.client.recv(1024)
+        print("RECEIVED: ",rc)
+        return rc.decode(encoding="UTF-8")
 
 
     def send(self, data):

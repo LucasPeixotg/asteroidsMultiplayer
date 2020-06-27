@@ -8,7 +8,7 @@ from _thread import start_new_thread
 pygame.font.init()
 
 width = 1000
-height = 800
+height = 700
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Asteroids")
 
@@ -463,7 +463,7 @@ def new_game(*args):
 
     buttons = [
         Button(0, 0, 50, 50, 40, "<", -1, (50, 50, 50), (100, 100, 100), game_menu),
-        Button(880, 710, 120, 80, 40, ">", -1, (50, 50, 50), (100, 100, 100), create_game, options),
+        Button(880, height-90, 120, 80, 40, ">", -1, (50, 50, 50), (100, 100, 100), create_game, options),
         Button(width/2 - 230, height/2 - 170, 220, 50, 17, "SINGLEPLAYER",1, single_text_color, (200, 200, 200), options.change_type, "SINGLEPLAYER"),
         Button(width/2 + 5, height/2 - 170, 220, 50, 17, "MULTIPLAYER",1, multi_text_color, (200, 200, 200), options.change_type, "MULTIPLAYER"),
 
@@ -513,7 +513,7 @@ def list_room_menu(*args):
 
     buttons = [
         Button(0, 0, 50, 50, 40, "<", -1, (50, 50, 50), (100, 100, 100), game_menu),
-        Button(880, 710, 120, 80, 40, ">", -1, (50, 50, 50), (100, 100, 100), create_game, options),
+        Button(880, height-90, 120, 80, 40, ">", -1, (50, 50, 50), (100, 100, 100), create_game, options),
     ]
 
     texts = [
