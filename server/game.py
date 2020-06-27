@@ -25,7 +25,7 @@ max_new_rocks = 3
 rock_jaggedness = .1
 rock_vert = 10
 width = 1000
-height = 800
+height = 700
 rocks_per_wave = 7
 max_rocks_on_screen = 5
 wave_delay = 13
@@ -106,7 +106,7 @@ class Player:
         self.imunity = False
         self.id = player_id
         self.game_over = False
-        self.color = (randint(0,  255), randint(0,  255), randint(0,  255))
+        self.color = (randint(150,  255), randint(150,  255), randint(150,  255))
 
     def movement(self, move):
         if move == "RIGHT":

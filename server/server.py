@@ -22,6 +22,7 @@ except socket.error as e:
     print(e)
     quit()
 
+
 s.listen()
 print("Server started. Waiting for connection...")
 
@@ -59,12 +60,6 @@ def game_thread(game_id):
 
 
 def threaded_client(conn, addr, player_id, game_id):
-
-    try:
-        conn.send(pickle.dumps(encode_game(games[game_id], player_id)))
-    except socket.error as e:
-        print(e)
-
     clock = py_time.Clock()
     while True:
         try:
@@ -128,16 +123,21 @@ def listen():
                     actual_player_id += 1
 
             elif game_type == "ENTER":
-                game_id = conn.recv(2048).decode()
-                if games[game_id] and not len(games[game_id].players) >= games[game_id].max_players:
-                    games[game_id].add_new_player(actual_player_id)
-                    start_new_thread(threaded_client, (conn, addr, actual_player_id, game_id))
-                    conn.send(str.encode("CONNECTED"))
-                    actual_player_id += 1
-                else:
+                try:
+                    game_id = int(conn.recv(2048).decode())
+                    if games[game_id] and not len(games[game_id].players) >= games[game_id].max_players:
+                        games[game_id].add_new_player(actual_player_id)
+                        start_new_thread(threaded_client, (conn, addr, actual_player_id, game_id))
+                        conn.send(str.encode("CONNECTED"))
+                        actual_player_id += 1
+                    else:
+                        conn.send(str.encode("ERROR"))
+                        print("Connection lost: ",addr)
+                        conn.close()
+                except:
                     conn.send(str.encode("ERROR"))
                     print("Connection lost: ",addr)
-                    conn.close()
+                    conn.close
             else:
                 conn.send(str.encode("ERROR"))
                 print("Connection lost: ",addr)
