@@ -246,7 +246,10 @@ def redraw_window(win, game, wave_text_x):
 
 
 def multiplayer_main(game_type, options):
-    net = Network(game_type, encode_options(options))
+    net = Network()
+    if not net.status == "ERROR":
+        net.connect_to_game(game_type, encode_options(options))
+    print("Connection status: ", net.status)
 
     if not net.status == "ERROR":
         wave_text_x = -400
@@ -256,38 +259,52 @@ def multiplayer_main(game_type, options):
         clock = pygame.time.Clock()
 
         while run:
-            clock.tick(60)
-            redraw_window(win, game, wave_text_x)
+            try:
+                clock.tick(60)
+                redraw_window(win, game, wave_text_x)
+                
 
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                game = net.send("LEFT")
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                game = net.send("RIGHT")
-            if keys[pygame.K_UP] or keys[pygame.K_w]:
-                game = net.send("ACCELERATE")
-            else:
-                game = net.send("STOP_ACCELERATE")
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    game = net.send("LEFT")
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    game = net.send("RIGHT")
+                if keys[pygame.K_UP] or keys[pygame.K_w]:
+                    game = net.send("ACCELERATE")
+                else:
+                    game = net.send("STOP_ACCELERATE")
+                
+                game = net.send("GET")
 
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        game = net.send("SHOOT")
-                    if event.key == pygame.K_ESCAPE:
-                        run = False
-                elif event.type == pygame.QUIT:
-                    run = False
-                    quit()
+                if game["game_over"]:
+                    break
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            game = net.send("SHOOT")
+                        if event.key == pygame.K_ESCAPE:
+                            run = False
+                    elif event.type == pygame.QUIT:
+                        quit()
 
-            if not game["wave_change"]:
-                wave_text_x = -400
-            else:
-                wave_text_x += wave_text_x_vel
-
+                if not game["wave_change"]:
+                    wave_text_x = -400
+                else:
+                    wave_text_x += wave_text_x_vel
+            except:
+                print("Game closed")
+                run = False
+        try:
+            net.client.close()
+        except socket.error:
+            pass
+        try:
+            if game["game_over"]:
+                game_over_menu(game["wave"], game["score"])
+        except KeyError:
+            pass
         game_menu()
-
     else:
-        print("Could not connect to server...")
         game_menu()
 
 
@@ -334,8 +351,9 @@ def singleplayer_main(*args):
         else:
             wave_text_x += wave_text_x_vel
 
-        if not game.player:
+        if game.player.game_over:
             run = False
+            game_over_menu(game.wave, game.score)
 
     print("Game main finished.")
     main_menu()
@@ -405,7 +423,7 @@ def game_menu(*args):
     buttons = [
         Button(0, 0, 50, 50, 40, "<", -1, (50, 50, 50), (100, 100, 100), main_menu),
         Button(width/2 - buttons_width/2, height/2 - buttons_height/2, buttons_width, buttons_height, 20, "NEW GAME", 1, (50, 50, 50), (100, 100, 100), new_game, default_options),
-        Button(width/2 - buttons_width/2, height/2 + 55, buttons_width, buttons_height, 20, "ROOMS", 1, (50, 50, 50), (100, 100, 100), list_room_menu, default_options),        
+        Button(width/2 - buttons_width/2, height/2 + 55, buttons_width, buttons_height, 20, "ROOMS", 1, (50, 50, 50), (100, 100, 100), list_room_menu, 1),        
     ]
 
     texts = [
@@ -418,10 +436,14 @@ def game_menu(*args):
 def create_game(*args):
     options = args[0][0]
     if options.type == "SINGLEPLAYER":
+        print("SINGLEPLAYER")
         singleplayer_main(options)
     elif options.type == "MULTIPLAYER":
+        print("MULTIPLAYER")
         multiplayer_main("CREATE", options)
     elif options.type == "ENTER":
+        print("MULTIPLAYER")
+        print("OPTIONS ID: ",options.game_id)
         multiplayer_main("ENTER", options)
     else:
         print("Could not create the game...")
@@ -506,19 +528,153 @@ def new_game(*args):
     menu(buttons, texts, images)
 
 
+def game_over_menu(wave, score):
+    buttons = [
+        Button(width-201, height-41, 200, 40, 20, "MAIN MENU", 1, (36, 38, 41), (136, 138, 141), main_menu),
+    ]
+    texts = [
+        Text(width/2, height/2 - 100, 60, "press_start_2p", "GAME OVER", (189, 13, 0)),
+        Text(width/2, height/2, 30, "press_start_2p", "LAST WAVE: "+str(wave), (100, 100, 100)),
+        Text(width/2, height/2+100, 40, "press_start_2p", "SCORE: "+str(score), (100, 100, 100)),
+    ]
+
+
+    menu(buttons, texts)
+
 def list_room_menu(*args):
-    options = args[0][0]
-    options.type = "ENTER"
-    options.game_id = 0
+    page = args[0][0]
+
+    net = Network()
+    print("PAGE: ", page)
+    games_data = net.get_games_list(page)
 
     buttons = [
         Button(0, 0, 50, 50, 40, "<", -1, (50, 50, 50), (100, 100, 100), game_menu),
-        Button(880, height-90, 120, 80, 40, ">", -1, (50, 50, 50), (100, 100, 100), create_game, options),
     ]
 
     texts = [
         Text(width/2, 100, 40, "press_start_2p", "ROOMS", (245, 245, 245)),
     ]
+
+    if not games_data["game_list"] or net.status == "ERROR":
+        texts.append(Text(width/2-35, height/2-20, 200, "krona_one", ":", (36, 38, 41)))
+        texts.append(Text(width/2+35, height/2, 200, "krona_one", "(", (36, 38, 41)))
+        texts.append(Text(width/2, height/2, 20, "press_start_2p", "No matches found", (150,150,150)))
+    else:
+        buttons.append(Button(
+                width/2 - 105, 
+                height - 90,
+                40,
+                40,
+                20,
+                "<",
+                1,
+                (100, 100, 100),
+                (200, 200, 200),
+                list_room_menu,
+                int(games_data["page"]) - 1,
+            ))   
+        buttons.append(Button(
+                width/2 + 75, 
+                height - 90,
+                40,
+                40,
+                20,
+                ">",
+                1,
+                (100, 100, 100),
+                (200, 200, 200),
+                list_room_menu,
+                int(games_data["page"]) + 1,
+            ))
+        texts.append(Text(
+                width/2,
+                height - 75,
+                40,
+                "krona_one",
+                games_data["page"],
+                (230, 230, 230),
+            ))
+
+
+        button_height = (height/2)/ceil(len(games_data["game_list"])/2)
+        card_num = 0
+        row_num = 0
+        for game in games_data["game_list"]:
+            options = Options("ENTER")
+            options.game_id = game["id"]
+            
+            button_x = width/2 + 10
+            button_y = height/4+button_height*row_num+(row_num*20)
+            if card_num%2==0:
+                if card_num+1 >= len(games_data["game_list"]):
+                    button_x = width/2 - width/8
+                else:
+                    button_x = width/2 - width/4 - 10
+            else:
+                row_num += 1
+
+            card_num += 1
+            buttons.append(Button(
+                    button_x, button_y,
+                    width/4, button_height,
+                    1,
+                    "",
+                    1, 
+                    (31, 33, 36),
+                    (230,230,230), 
+                    create_game, 
+                    options
+                ))
+            if game["players_playing"] == game["max_players"]:
+                online_color = (171, 14, 0)
+            else:
+                online_color = (54, 255, 90)
+            texts.append(Text(
+                    button_x + width/4 - 40,
+                    button_y + 30,
+                    10,
+                    "krona_one",
+                    str(game["players_playing"])+"/"+str(game["max_players"]),
+                    online_color,
+                ))
+            texts.append(Text(
+                    button_x + 30,
+                    button_y + 30,
+                    10,
+                    "krona_one",
+                    str(game["id"]),
+                    (50, 50, 50),
+                ))
+            texts.append(Text(
+                    button_x + width/8,
+                    button_y + button_height - 7,
+                    10,
+                    "krona_one",
+                    "WAVE: "+str(game["wave"]),
+                    (100, 100, 100),
+                ))
+            if game["difficulty"] == "EASY":
+                difficulty_color = (209, 224, 230)
+                difficulty_font_size =  18
+            elif game["difficulty"] == "NORMAL":
+                difficulty_color = (232, 232, 232)
+                difficulty_font_size =  21
+            elif game["difficulty"] == "HARD":
+                difficulty_color = (227, 77, 77)
+                difficulty_font_size =  24
+            else:
+                difficulty_color = (201, 0, 0)
+                difficulty_font_size =  28
+
+            texts.append(Text(
+                    button_x + width/8,
+                    button_y + button_height/2,
+                    difficulty_font_size,
+                    "krona_one",
+                    str(game["difficulty"]),
+                    difficulty_color,
+                ))
 
     menu(buttons, texts)
 

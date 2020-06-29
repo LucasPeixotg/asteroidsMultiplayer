@@ -14,7 +14,7 @@ maximum_shots = 3
 teleport_shots = False
 dead_time = 5
 imunity_time = 10
-player_lifes = 3
+player_lifes = 1
 min_rock_radius = 60
 max_rock_radius = 100
 max_rock_vel = 1
@@ -38,6 +38,13 @@ easy_mult = .5
 normal_mult = .7
 hard_mult = 1
 insane_mult = 1.2
+
+colors = [
+    (3, 211, 252),
+    (219, 3, 252),
+    (252, 128, 3),
+    (53, 252, 3),
+]
 
 def distance_between(x1, y1, x2, y2):
     return ((x2-x1)**2 + (y2-y1)**2)**(1/2)
@@ -105,8 +112,10 @@ class Player:
         self.accelerating = False
         self.imunity = False
         self.id = player_id
+        self.imunity_time = 0
+        self.death_time = 0
         self.game_over = False
-        self.color = (randint(150,  255), randint(150,  255), randint(150,  255))
+        self.color = colors[player_id % 4]
 
     def movement(self, move):
         if move == "RIGHT":
@@ -189,8 +198,13 @@ class Rock:
 
 
 class Game:
-    def __init__(self, options):
-        self.difficulty_multiplier = get_difficulty_multiplier(options["difficulty"])
+    def __init__(self, options, game_id):
+        self.id = game_id
+        try:
+            self.difficulty = options["difficulty"]
+        except:
+            self.difficulty = "NORMAL"
+        self.difficulty_multiplier = get_difficulty_multiplier(self.difficulty)
         self.player_dead_time = dead_time
         self.player_imunity_time = imunity_time
         self.wave_delay_time = wave_delay
@@ -211,13 +225,20 @@ class Game:
         self.min_rock_vel = min_rock_vel * self.difficulty_multiplier
         self.rocks_created = 0
         self.min_rock_radius = min_rock_radius
-        self.max_rock_radius = round(max_rock_radius * self.difficulty_multiplier)
-        self.min_new_rocks = min_new_rocks
+        self.max_rock_radius = round(max_rock_radius)
+        self.min_new_rocks = round(min_new_rocks * self.difficulty_multiplier)
         self.max_new_rocks = round(max_new_rocks * self.difficulty_multiplier)
         self.players = {}
         self.rocks = []
         self.drops = []
-        self.max_players = options["max_players"]
+        try:
+            if options["max_players"] == 2:
+                self.max_players = 2
+            else:
+                self.max_players = 4
+        except:
+            self.max_players = 4
+        self.game_over = False
 
     def add_new_player(self, player_id):
         self.players[player_id] = Player(player_id)
@@ -275,6 +296,7 @@ class Game:
                             if other_p.game_over:
                                 other_p.lifes += 1
                                 other_p.reset()
+                                other_p.imunity_time = time()
                                 other_p.game_over = False
                                 break
 
@@ -283,6 +305,7 @@ class Game:
                 distance = distance_between(rock.x, rock.y, player.x, player.y)
                 coliding = distance <= min_dist
                 if coliding and not (player.dead or player.imunity):
+
                     self.rocks.pop(self.rocks.index(rock))
                     for _ in range(self.min_new_rocks, self.max_new_rocks):
                         if self.rocks_created <= self.rocks_per_wave:
@@ -294,7 +317,7 @@ class Game:
                                 self.add_new_rock()
                                 self.rocks_created += 1
 
-                    self.start_time = time()
+                    player.death_time = time()
                     player.dead = True
                     player.lifes -= 1
 
@@ -391,6 +414,7 @@ def encode_game(game, player_id):
     encoded["wave_change"] = game.wave_change
     encoded["heart_radius"] = 11
     encoded["wave"] = game.wave
+    encoded["game_over"] = game.game_over
 
     encoded["players"] = []
     encoded["rocks"] = []

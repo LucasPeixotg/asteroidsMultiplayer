@@ -106,7 +106,8 @@ class Player:
         self.lifes = player_lifes
         self.dead = False
         self.accelerating = False
-        self.imunity = False
+        self.imunity = True
+        self.imunity_time = time()
         self.id = player_id
         self.game_over = False
 
@@ -456,9 +457,7 @@ def game_thread(game):
         clock.tick(150)
         game.update_game()
     
-        game.game_over = True
-        if not game.player:
-            break
-      
+        if not game.player or game.player.game_over:
+            break  
 
     print("Game thread finished.")
