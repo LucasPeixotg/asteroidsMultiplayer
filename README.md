@@ -4,7 +4,6 @@
 <p>
 First of all, install python 3, then run the following:<br/>
 pip install pygame<br/>
-<br/>
 Then, if you want to play offline you just need to run client.py, with: <br/>
 python3 client/client.py <br/>
 But if you want to play with your friends, you will need to run server/server.py first, with: <br/>
