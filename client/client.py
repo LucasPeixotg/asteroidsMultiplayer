@@ -305,7 +305,7 @@ def multiplayer_main(game_type, options):
             pass
         game_menu()
     else:
-        game_menu()
+        error_connection_menu(options)
 
 
 
@@ -678,5 +678,19 @@ def list_room_menu(*args):
 
     menu(buttons, texts)
 
+
+def error_connection_menu(options):
+    buttons_width = 250
+    buttons_height = 90
+
+    buttons = [
+        Button(width/2 - buttons_width/2, height/2 - buttons_height/2, buttons_width, buttons_height, 20, "TRY AGAIN", 1, (50, 50, 50), (100, 100, 100), create_game, options),
+        Button(width/2 - buttons_width/2, height/2 + 55, buttons_width, buttons_height, 20, "MAIN MENU", 1, (50, 50, 50), (100, 100, 100), game_menu),
+    ]
+    texts = [
+        Text(width/2, height/2 - 150, 40, "press_start_2p", "CONNECTION LOST", (150,150,150)),
+        Text(width/2, height/2 - 100, 15, "press_start_2p", "Could not connect to server.", (50,50,50))
+    ]
+    menu(buttons, texts)
 
 main_menu()
