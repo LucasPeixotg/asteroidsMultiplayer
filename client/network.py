@@ -1,16 +1,21 @@
 import socket
 import pickle
-import os
-os.system('cls' if os.name == 'nt' else 'clear')
 
-server_ip = input("Type the server IP (example: 192.168.15.12:9090): ") 
 while(True):
-    server, port = server_ip.split(":")
-    if server and port:
-        break
+    server_ip = input("Type the server IP (example: 192.168.15.12:9090): ") 
+    if ":" in server_ip:
+        server, port = server_ip.split(":")
+        if server and port:
+            try:
+                port = int(port)
+            except ValueError:
+                print("Please type a valid IP.")
+            else:
+                break
+        else: 
+            print("Please type a valid IP.")
     else: 
         print("Please type a valid IP.")
-        os.system('cls' if os.name == 'nt' else 'clear')
         
 
 print("The server is..: ", server)
@@ -20,7 +25,7 @@ print("\n")
 class Network():
     def __init__(self):
         self.server = server
-        self.port = int(port)
+        self.port = port
         self.addr = (self.server, self.port)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.status = self.connect_to_network()
