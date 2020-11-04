@@ -5,6 +5,8 @@ import pickle
 from pygame import time as py_time
 from time import time as new_time
 from math import ceil
+import os
+os.system('cls' if os.name == 'nt' else 'clear')
 
 games = {}
 connected_games = [[],]
@@ -17,7 +19,9 @@ tick_time = 150
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-server = "192.168.15.81"
+
+hostname = socket.gethostname()
+server = socket.gethostbyname(hostname)
 port = 9090
 
 try:
@@ -29,7 +33,22 @@ except socket.error as e:
 
 
 s.listen()
-print("Server started. Waiting for connection...")
+print("\n")
+print('''\033[95m
+               <-=-=-=-=-=-=-=-=-=-=-=-=-=--:=-=-=-=-=<=-=-=-=-=-=-=-=-=-=-=-=-=-=-=<=-=-=-=-<==-=-=-=-=-=-=-= //// 
+            <-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-..=-=-.-=-=-=-=-=-=-=-=-=<=-=-=-=-=-=-=-=-=-==--=-=-=-=<=-=-=-<=/
+      _____            __                      .__    .___         ________    _____      _____  ___________
+     /  _  \\   _______/  |_  ___________  ____ |__| __| _/______  /  _____/   /  _  \\    /     \\ \\_   _____/
+    /  /_\\  \\ /  ___/\\   __\\/ __ \\_  __ \/  _ \\|  |/ __ |/  ___/ /   \\  ___  /  /_\\  \\  /  \\ /  \\ |    __)_ 
+   /    |    \\___  \\  |  | \\  ___/|  | \\(  <_> )  / /_/ |\\___ \\  \\    \\_\\  \\/    |    \\/    Y    \\|        \\
+   \\____|__  /____  > |__|  \\___  >__|   \\____/|__\\____ /____  >  \\______  /\\____|__  /\\____|__  /_______  /
+           \\/     \\/            \\/                     \\/    \\/          \\/         \\/         \\/        \\/ 
+/>=-=-=-=>=-=-=-=--==-=-=-=-=-=-=-=-=-=>=-=-=-=-=-=-=-=-=-.-=-=..-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=->
+//// =-=-=-=-=-=-=-==>-=-=-=-=>=-=-=-=-=-=-=-=-=-=-=-=-=-=-=>=-=-=-=-=:--=-=-=-=-=-=-=-=-=-=-=-=-=->
+
+\033[0m
+''')
+print("Server started (press \"ctrl + break\" to stop it). \nHOSTING AT IP: \033[92m"+server+":"+str(port)+"\033[0m\nWaiting for connection...")
 
 
 def game_thread(game_id):
