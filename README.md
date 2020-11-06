@@ -1,5 +1,6 @@
 <h1 align=center>Asteroids Multiplayer</h1>
 <p>It's a simple asteroids game, but that you can play with your friends on a local network.</p>
+<h2>Note -- the README is not finished and it will be updated in the future...</h2>
 <h2>How to play </h2>
 <p>
 First of all, install python 3, then run the following:<br/>
