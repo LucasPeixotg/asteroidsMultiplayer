@@ -280,6 +280,7 @@ class Game:
             rock.update(self.game_speed, self.width, self.height)
 
     def update_players(self):
+
         for player in self.players.values():
             player.update(self.game_speed, self.width, self.height)
 
@@ -304,8 +305,7 @@ class Game:
                 min_dist = rock.radius + player.radius
                 distance = distance_between(rock.x, rock.y, player.x, player.y)
                 coliding = distance <= min_dist
-                if coliding and not (player.dead or player.imunity):
-
+                if coliding and not player.imunity and not player.game_over:
                     self.rocks.pop(self.rocks.index(rock))
                     for _ in range(self.min_new_rocks, self.max_new_rocks):
                         if self.rocks_created <= self.rocks_per_wave:
