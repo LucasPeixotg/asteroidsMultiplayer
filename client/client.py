@@ -1,11 +1,21 @@
+### PORT ###
+PORT = 3333
+
+'''
+That is the default port of the server. 
+If you changed the port that the server is running, please changed this too. ;)
+'''
+############
+
 from math import sin, cos, radians, pi, ceil
 
 import pygame
 pygame.font.init()
 
-import os
-os.system('cls' if os.name == 'nt' else 'clear')
+from os import system, name as os_name
+system('cls' if os_name == 'nt' else 'clear')
 
+from network import Network
 from game import Game, encode_game, game_thread
 from time import time as new_time
 from _thread import start_new_thread
@@ -24,7 +34,6 @@ print('''\033[95m
 
 \033[0m
 ''')
-from network import Network
 
 width = 1000
 height = 700
@@ -61,6 +70,7 @@ class Options:
         self.type = game_type
         self.game_id = 0
         self.max_players = max_players
+        self.server_ip = ""
 
     def change_type(self, *args):
         new_type = args[0][0]
@@ -130,6 +140,7 @@ class Image:
         self.x = ceil(x)
         self.y = ceil(y)
         self.index = image_index
+
 
 
 def get_player_lines(player):
@@ -265,7 +276,7 @@ def redraw_window(win, game, wave_text_x):
 
 
 def multiplayer_main(game_type, options):
-    net = Network()
+    net = Network(options.server_ip, PORT)
     if not net.status == "ERROR":
         net.connect_to_game(game_type, encode_options(options))
     print("Connection status: ", net.status)
@@ -281,7 +292,7 @@ def multiplayer_main(game_type, options):
             try:
                 clock.tick(60)
                 redraw_window(win, game, wave_text_x)
-                
+
 
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -325,7 +336,6 @@ def multiplayer_main(game_type, options):
         game_menu()
     else:
         error_connection_menu(options)
-
 
 
 def singleplayer_main(*args):
@@ -376,6 +386,7 @@ def singleplayer_main(*args):
 
     print("Game main finished.")
     main_menu()
+
 
 def menu(buttons=[], texts=[], images=[], font_name="press_start_2p"):
     while True:
@@ -459,6 +470,7 @@ def create_game(*args):
         singleplayer_main(options)
     elif options.type == "MULTIPLAYER":
         print("MULTIPLAYER")
+        options.server_ip = get_ip()
         multiplayer_main("CREATE", options)
     elif options.type == "ENTER":
         print("MULTIPLAYER")
@@ -467,6 +479,7 @@ def create_game(*args):
     else:
         print("Could not create the game...")
         main_menu()
+
 
 def new_game(*args):
     options = args[0][0]
@@ -560,10 +573,12 @@ def game_over_menu(wave, score):
 
     menu(buttons, texts)
 
+
 def list_room_menu(*args):
     page = args[0][0]
 
-    net = Network()
+    server_ip = get_ip()
+    net = Network(server_ip, PORT)
     print("PAGE: ", page)
     games_data = net.get_games_list(page)
 
@@ -622,6 +637,7 @@ def list_room_menu(*args):
         for game in games_data["game_list"]:
             options = Options("ENTER")
             options.game_id = game["id"]
+            options.server_ip = server_ip
             
             button_x = width/2 + 10
             button_y = height/4+button_height*row_num+(row_num*20)
@@ -711,5 +727,67 @@ def error_connection_menu(options):
         Text(width/2, height/2 - 100, 15, "press_start_2p", "Could not connect to server.", (50,50,50))
     ]
     menu(buttons, texts)
+
+
+def get_ip():
+    text_ip = ""
+    buttons = [
+        Button(width/2 - 225, height*3/4, 200, 40, 20, "CANCEL", 1, (227, 77, 77), (255, 0, 0), game_menu),
+        Button(width/2 + 25, height*3/4, 200, 40, 20, "OK", 1, (56, 58, 61), (136, 138, 141), game_menu),
+    ]
+
+    texts = [
+        Text(width/2, 100, 40, "press_start_2p", "SERVER IP", (245, 245, 245)),
+    ]
+    texts.append(Text(width/2, height/2 - 10, 20, "press_start_2p", text_ip, (245, 245, 245)))
+
+    while True:
+        win.fill((26, 28, 31))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for button in buttons:
+                    if button.mouse_up and button.text == "OK":
+                        return text_ip
+                    if button.mouse_up and button.clicked:
+                        button.clicked(button.args)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE and text_ip:
+                    text_ip = text_ip[0:-1]
+                else:
+                    text_ip += event.unicode
+        
+        texts.pop()
+        texts.append(Text(width/2, height/2 - 10, 20, "press_start_2p", text_ip, (245, 245, 245)))
+
+        ### Display Everything ###
+        font_name="press_start_2p"
+        for button in buttons:
+            mouse_pos = pygame.mouse.get_pos()
+
+            button.check_mouse_up(mouse_pos[0], mouse_pos[1])
+            color = button.color
+            if button.mouse_up:
+                color = button.hover_color
+
+            pygame.draw.rect(win, color, (button.x, button.y, button.width, button.height), button.border)
+
+            font = pygame.font.Font("assets/fonts/"+font_name+".ttf", button.font_size)
+            text = font.render(button.text, True, color)
+            win.blit(text, (
+                    ceil(button.x + button.width/2 - text.get_width()/2),
+                    ceil(button.y + button.height/2 - text.get_height()/2)
+                ))
+
+        for text in texts:
+            win.blit(text.text, (
+                    text.x,
+                    text.y
+                ))
+
+        pygame.display.update()
+
 
 main_menu()

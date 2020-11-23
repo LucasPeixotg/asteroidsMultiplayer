@@ -22,14 +22,13 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 hostname = socket.gethostname()
 server = socket.gethostbyname(hostname)
-port = 9090
+port = 3333
 
 try:
     s.bind((server,port))
 except socket.error as e:
     print(e)
     quit()
-
 
 
 s.listen()
