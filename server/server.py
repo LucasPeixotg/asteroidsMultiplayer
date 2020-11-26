@@ -46,7 +46,7 @@ print('''\033[93m
 
 \033[0m
 ''')
-print("Server started (press \"ctrl + break\" to stop it). \nHOSTING AT IP: \033[92m"+server+":"+str(port)+"\033[0m\nWaiting for connection...")
+print("Server started (press \"ctrl + break\" to stop it). \nHOSTING AT IP: \033[92m"+server+"\033[0m\nWaiting for connection...")
 
 
 def game_thread(game_id):
