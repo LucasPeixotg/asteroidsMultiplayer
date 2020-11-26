@@ -7,6 +7,8 @@ If you changed the port that the server is running, please changed this too. ;)
 '''
 ############
 
+FPS = 100
+
 from math import sin, cos, radians, pi, ceil
 
 import pygame
@@ -20,25 +22,12 @@ from game import Game, encode_game, game_thread
 from time import time as new_time
 from _thread import start_new_thread
 
-print('''\033[95m
-               <-=-=-=-=-=-=-=-=-=-=-=-=-=--:=-=-=-=-=<=-=-=-=-=-=-=-=-=-=-=-=-=-=-=<=-=-=-=-<==-=-=-=-=-=-=-= //// 
-            <-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-..=-=-.-=-=-=-=-=-=-=-=-=<=-=-=-=-=-=-=-=-=-==--=-=-=-=<=-=-=-<=/
-      _____            __                      .__    .___         ________    _____      _____  ___________
-     /  _  \\   _______/  |_  ___________  ____ |__| __| _/______  /  _____/   /  _  \\    /     \\ \\_   _____/
-    /  /_\\  \\ /  ___/\\   __\\/ __ \\_  __ \/  _ \\|  |/ __ |/  ___/ /   \\  ___  /  /_\\  \\  /  \\ /  \\ |    __)_ 
-   /    |    \\___  \\  |  | \\  ___/|  | \\(  <_> )  / /_/ |\\___ \\  \\    \\_\\  \\/    |    \\/    Y    \\|        \\
-   \\____|__  /____  > |__|  \\___  >__|   \\____/|__\\____ /____  >  \\______  /\\____|__  /\\____|__  /_______  /
-           \\/     \\/            \\/                     \\/    \\/          \\/         \\/         \\/        \\/ 
-/>=-=-=-=>=-=-=-=--==-=-=-=-=-=-=-=-=-=>=-=-=-=-=-=-=-=-=-.-=-=..-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=->
-//// =-=-=-=-=-=-=-==>-=-=-=-=>=-=-=-=-=-=-=-=-=-=-=-=-=-=-=>=-=-=-=-=:--=-=-=-=-=-=-=-=-=-=-=-=-=->
-
-\033[0m
-''')
-
 width = 1000
 height = 700
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Asteroids")
+program_icon = pygame.image.load('icon.ico')
+pygame.display.set_icon(program_icon)
 
 wave_text_x_vel = 2.5
 draw_colision_circles = False
@@ -290,7 +279,7 @@ def multiplayer_main(game_type, options):
 
         while run:
             try:
-                clock.tick(60)
+                clock.tick(FPS)
                 redraw_window(win, game, wave_text_x)
 
 
@@ -351,7 +340,7 @@ def singleplayer_main(*args):
     start_new_thread(game_thread, (game,))
 
     while run:
-        clock.tick(40)
+        clock.tick(FPS)
         redraw_window(win, encode_game(game, player_id), wave_text_x)
 
         keys = pygame.key.get_pressed()
